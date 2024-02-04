@@ -291,7 +291,7 @@ class MaskModule(nn.Module):
                     mask_scores[i] = torch.ones(weight.shape[i] // dividers[i], device=weight.device)
 
             mask_scores = mask_scores[0].unsqueeze(-1).matmul(mask_scores[1].unsqueeze(0))
-        else:
+        elif method != "magnitude":
             mask_scores = mask_scores[0]
 
         if method == "topK":
