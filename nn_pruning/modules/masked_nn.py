@@ -379,10 +379,21 @@ class MaskedLinear(ReplacementModule):
                 col_mask = col_mask.expand_as(mask).float()
                 mask = torch.maximum(mask, col_mask)
 
-        if mask is not None:
-            self.mask_nnz = self.nnz(mask)
-        else:
-            self.mask_nnz = self.weight.numel()
+            mask_no_grad = (mask == 1).detach()
+
+            if mask_no_grad is not None:
+                mask.requires_grad_(False)
+                self.weight.requires_grad_(False)
+
+            if mask_no_grad is not None:
+                self.mask_nnz = self.nnz(mask_no_grad)
+            else:
+                self.mask_nnz = self.weight.numel()
+
+            if mask is not None:
+                self.mask_nnz = self.nnz(mask)
+            else:
+                self.mask_nnz = self.weight.numel()
 
         if self.args.ampere_method != "disabled":
             ampere_temperature = self.get_context_data("ampere_temperature")
